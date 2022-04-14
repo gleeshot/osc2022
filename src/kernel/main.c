@@ -14,6 +14,10 @@ void main()
     uart_puts("\n\r");
     // uart_puts("start finding cpio");
     fdt_parser((fdt_header *)(DTB_BASE), initramfs_callback);
+    // init timeout queue
+    init_timeout();
+    // init buddy system
+    mm_init();
     // execute shell
     exe_shell();
     

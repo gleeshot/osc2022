@@ -144,13 +144,13 @@ exception_invalid_handler:
 
 currentEL_irq_handler:
     save_all
-    bl irq_router
+    bl currentEL_irq_router
     load_all
     eret
 
 lowerEL_irq_handler:
     save_all
-    bl irq_router
+    bl lowerEL_irq_router
     load_all
     eret
 
