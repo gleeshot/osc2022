@@ -37,5 +37,7 @@ void disable_write_interrupt();
 void enable_read_interrupt();
 void disable_read_interrupt();
 void mini_uart_interrupt_handler();
+char uart_async_getc();
+void uart_async_puts(char *s);
 
 #endif

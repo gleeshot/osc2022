@@ -6,7 +6,6 @@
 #include "mini_uart.h"
 // #include "cpio.h"
 
-typedef unsigned int uint32_t;
 uint32_t CPIO_BASE;
 
 #define FDT_BEGIN_NODE  0x00000001

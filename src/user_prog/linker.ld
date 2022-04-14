@@ -1,5 +1,5 @@
 SECTIONS
 {
   . = 0x80000;
-  .text : { *(.text.svc) }
+  .text : { *(.text) }
 }

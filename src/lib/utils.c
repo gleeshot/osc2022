@@ -31,3 +31,8 @@ void unsignedlonglongToStrHex(unsigned long long num, char *buf)
     buf[16] = '\0';
     
 }
+
+int isdigit(char num) {
+    if (num - '0' > 9 || num - '0' < 0) return 0;
+    return 1;
+}

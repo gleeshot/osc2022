@@ -7,6 +7,8 @@
 #include "cpio.h"
 #include "exec.h"
 #include "timer.h"
+#include "mm.h"
+#include "list.h"
 #define MAX_BUFFER_SIZE 256u
 
 void print_sys_info();
