@@ -36,3 +36,9 @@ int isdigit(char num) {
     if (num - '0' > 9 || num - '0' < 0) return 0;
     return 1;
 }
+
+void delay(uint32_t num)
+{
+    while (num > 0) num--;
+    return;
+}

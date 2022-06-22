@@ -3,6 +3,8 @@
 
 #include "gpio.h"
 #include "mini_uart.h"
+#include "mmio.h"
+#include "mmu.h"
 
 volatile unsigned int  __attribute__((aligned(16))) mbox[36];
 
@@ -36,7 +38,30 @@ volatile unsigned int  __attribute__((aligned(16))) mbox[36];
 #define TAG_REQUEST_CODE    0x00000000
 #define END_TAG             0x00000000
 
+#define MAIL_BODY_BUF_LEN    (4)
+#define MAIL_BUF_SIZE        (MAIL_BODY_BUF_LEN << 2)
+#define MAIL_PACKET_SIZE     (MAIL_BUF_SIZE + 24)
+
+struct mail_header {
+    unsigned int packet_size;
+    unsigned int code;
+};
+
+struct mail_body {
+    unsigned int identifier;
+    unsigned int buffer_size;
+    unsigned int code;
+    unsigned int buffer[MAIL_BODY_BUF_LEN];
+    unsigned int end;
+};
+
+typedef struct mail_t {
+    struct mail_header header;
+    struct mail_body   body;
+} mail_t __attribute__((aligned(16)));
+
 int mbox_call(unsigned char ch);
 void get_board_revision(unsigned int* revision);
 void get_arm_memory(unsigned int* mem_base, unsigned int* mem_size);
+int _mbox_call(mail_t *mbox, unsigned char ch);
 #endif

@@ -25,7 +25,8 @@ void exec(cpio_new_header *header ,char *fpath, int enable_timer) {
             }
 
             if (enable_timer) {
-                core_timer_enable();
+                // core_timer_enable();
+                set_timer_interrupt(true);
             }
             volatile unsigned long temp = 0x340;
             asm volatile("msr spsr_el1, %0" : : "r" (temp)); // save el1 PSTATE

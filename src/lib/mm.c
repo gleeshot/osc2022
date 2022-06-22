@@ -54,14 +54,77 @@ void page_init()
     }
 }
 
-void mm_init()
+void startup_alloc(uint64_t DTB_BASE, uint32_t dtb_size)
 {
+    for (int i = 0; i < PAGE_NUM; i++)
+    {
+        page[i].idx = i;
+        page[i].used = USED;
+        page[i].order = 0;
+        page[i].list.next = NULL;
+        page[i].list.prev = NULL;
+        page[i].reserve = false;
+    }
+    unsigned long cpio_virt_base = (unsigned long)CPIO_BASE;
+    memory_reserve(SPIN_TABLE_START, SPIN_TABLE_START + 0x1000);
+    memory_reserve(kernel_start, kernel_end);
+    memory_reserve(cpio_virt_base, cpio_virt_base + 0x100000);
+    memory_reserve(DTB_BASE, DTB_BASE + (uint64_t)dtb_size);
+
+    // uart_hex(PAGE_NUM);
+    for (int i = 0; i < PAGE_NUM; i++)
+    {
+        if (page[i].reserve == false)
+        {
+            void *addr = page_idx_to_addr(i);
+            buddy_free(addr);
+        }
+    }
+    return;
+}
+
+void *page_idx_to_addr(int idx)
+{
+    void *addr;
+    addr = (void *)((unsigned long)idx * PAGE_SIZE + alloc_start);
+
+    return addr;
+}
+
+void memory_reserve(unsigned long start, unsigned long end)
+{
+    unsigned long start_page_idx = (start - alloc_start) / PAGE_SIZE;
+    unsigned long end_page_idx = (end - alloc_start + PAGE_SIZE - 1) / PAGE_SIZE;
+    if (end_page_idx > ((0x30000000 + PAGE_SIZE - 1) / PAGE_SIZE))
+    {
+        end_page_idx = (0x30000000 + PAGE_SIZE - 1) / PAGE_SIZE;
+    }
+
+    for (int i = start_page_idx; i <= end_page_idx; i++)
+    {
+        page[i].reserve = true;
+    }
+
+    uart_puts("[memory reserve] 0x");
+    uart_hex(start);
+    uart_puts(" to 0x");
+    uart_hex(end);
+    uart_puts("\r\n");
+    return;
+}
+
+void mm_init(uint64_t DTB_BASE, uint32_t dtb_size)
+{
+    uint64_t dtb_base = DTB_BASE;
+    uint32_t size = dtb_size;
     buddy_init();
-    page_init();
+    // page_init();
+    startup_alloc(dtb_base, size);
     for (int i = 0; i < MAX_OBJ_ALLOCTOR_NUM; i++)
     {
         obj_allocator[i].used = AVAL; // init obj allocator
     }
+    return;
 }
 
 /*
@@ -99,12 +162,12 @@ void *buddy_alloc(int order)
         {
             page_t *p = buddy_pop(&free_area[i], order);
             uint64_t page_virt_addr = (p->idx * PAGE_SIZE) + alloc_start;
-            uart_puts("allocate pages from 0x");
-            uart_hex(page_virt_addr);
-            uart_puts(" to 0x");
-            uint64_t end_addr = page_virt_addr + (1 << (p->order)) * PAGE_SIZE;
-            uart_hex(end_addr);
-            uart_puts("\r\n");
+            // uart_puts("allocate pages from 0x");
+            // uart_hex(page_virt_addr);
+            // uart_puts(" to 0x");
+            // uint64_t end_addr = page_virt_addr + (1 << (p->order)) * PAGE_SIZE;
+            // uart_hex(end_addr);
+            // uart_puts("\r\n");
             return (void *)page_virt_addr;
         }
     }
@@ -140,11 +203,11 @@ page_t *buddy_pop(buddy_t *bd, int target_order)
  */
 page_t *release_redundant(page_t *p, int target_order)
 {
-    uart_puts("release: ");
-    page_info(p->idx);
-    uart_puts(" target: ");
-    uart_hex(target_order);
-    uart_puts("\r\n");
+    // uart_puts("release: ");
+    // page_info(p->idx);
+    // uart_puts(" target: ");
+    // uart_hex(target_order);
+    // uart_puts("\r\n");
 
     int cur_order = p->order;
     if (cur_order > target_order)
@@ -180,21 +243,21 @@ void buddy_merge(page_t *lower, page_t *top, int order)
     int new_o = order + 1;
 
     // merge message
-    uart_puts("merge from order ");
-    uart_hex(order);
-    uart_puts(" to order ");
-    uart_hex(new_o);
-    uart_puts(" (");
-    uart_hex(lower->idx);
-    uart_puts(" -> ");
-    uart_hex(top->idx);
-    uart_puts(")\n");
+    // uart_puts("merge from order ");
+    // uart_hex(order);
+    // uart_puts(" to order ");
+    // uart_hex(new_o);
+    // uart_puts(" (");
+    // uart_hex(lower->idx);
+    // uart_puts(" -> ");
+    // uart_hex(top->idx);
+    // uart_puts(")\n");
 
     page_t *buddy = find_buddy(lower->idx, new_o);
 
     if (buddy->used == AVAL && buddy->order == new_o && new_o < MAX_BUDDY_ORDER - 1)
     {
-        uart_hex(new_o);
+        // uart_hex(new_o);
         // there is a larger buddy to be merged recursively
         buddy_remove(&(free_area[new_o]), &(buddy->list));
         if (buddy > lower)
@@ -236,11 +299,11 @@ void buddy_free(void *addr)
     // check if the buddy can be merged
     if (buddy->used == USED || buddy->order != order)
     {
-        uart_hex((buddy->idx) * PAGE_SIZE + alloc_start);
+        // uart_hex((buddy->idx) * PAGE_SIZE + alloc_start);
         // buddy is used or it's order is different, cannot be merged
-        uart_puts(" cannot be merged, just free ");
-        uart_hex((p->idx) * PAGE_SIZE + alloc_start);
-        uart_puts("\r\n");
+        // uart_puts(" cannot be merged, just free ");
+        // uart_hex((p->idx) * PAGE_SIZE + alloc_start);
+        // uart_puts("\r\n");
         for (int i = 0; i < (1 << order); i++)
         {
             (p + i)->used = AVAL;
@@ -337,7 +400,7 @@ void *kmalloc(uint64_t size)
 {
     if (size >= PAGE_SIZE)
     {
-        uart_puts("allocate with buddy system\n");
+        // uart_puts("allocate with buddy system\n");
         int order;
 
         for (int i = 0; i < MAX_BUDDY_ORDER; i++)
@@ -352,7 +415,7 @@ void *kmalloc(uint64_t size)
     }
     else
     {
-        uart_puts("allocate with obj allocator\n");
+        // uart_puts("allocate with obj allocator\n");
         for (int i = 0; i < MAX_OBJ_ALLOCTOR_NUM; i++)
         {
             if ((uint64_t)obj_allocator[i].obj_size == size)
@@ -375,12 +438,27 @@ void kfree(void *addr)
             int page_pfn = (pool->page_addr[j] - alloc_start) / PAGE_SIZE;
             if (addr_pfn == page_pfn)
             {
-                uart_puts("free using obj allocator\n");
+                // uart_puts("free using obj allocator\n");
                 obj_free(i, addr);
                 return;
             }
         }
     }
-    uart_puts("free using buddy\n");
+    // uart_puts("free using buddy\n");
     buddy_free(addr);
+}
+
+unsigned int page_num_to_order(unsigned int page_num)
+{
+    unsigned int order = 0;
+
+    // clog2(page_num)
+    page_num = page_num - 1;
+    while (page_num > 0)
+    {
+        order = order + 1;
+        page_num = page_num >> 1;
+    }
+
+    return order;
 }

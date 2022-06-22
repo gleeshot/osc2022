@@ -128,7 +128,7 @@ void cmd_handler(char *cmd)
                 }
             }
         }
-        add_timer(print_timout_msg, msg, second);
+        add_timer(print_time, msg, second);
     }
     else if (strcmp(cmd, "buddy_alloc") == 0)
     {
@@ -155,6 +155,22 @@ void cmd_handler(char *cmd)
     else if (strcmp(cmd, "buddyinfo") == 0)
     {
         buddy_info();
+    }
+    else if (strcmp(cmd, "thread_test") == 0)
+    {
+        thread_create_test();
+    }
+    else if (strcmp(cmd, "load") == 0)
+    {
+        uart_puts("Filename: ");
+        char input[MAX_BUFFER_SIZE];
+        cmd_reader(input);
+        uart_puts("\r\n");
+        load(input);
+    }
+    else if (strcmp(cmd, "fork") == 0)
+    {
+        thread_exec(fork_test);
     }
     else
     {
@@ -198,4 +214,19 @@ void exe_shell()
         cmd_reader(cmd);
         cmd_handler(cmd);
     }
+}
+
+void load(char *file_name)
+{
+    void (*prog)();
+    prog = cpio_load((cpio_new_header *)CPIO_BASE, file_name);
+
+    if (prog == 0)
+    {
+        uart_puts("User program not found!\n");
+        return;
+    }
+    thread_exec(prog);
+
+    return;
 }

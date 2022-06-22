@@ -9,6 +9,7 @@
 #include "timer.h"
 #include "mm.h"
 #include "list.h"
+#include "thread.h"
 #define MAX_BUFFER_SIZE 256u
 
 void print_sys_info();
@@ -20,5 +21,6 @@ void cmd_handler(char *cmd);
 void cmd_reader(char *cmd);
 void exe_shell();
 void clear_screen();
+void load (char *file_name);
 
 #endif

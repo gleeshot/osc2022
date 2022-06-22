@@ -14,5 +14,6 @@ unsigned long align_by_4(unsigned long value);
 void* simple_malloc(size_t size);
 void unsignedlonglongToStrHex(unsigned long long num, char *buf);
 int isdigit(char num);
+void delay(uint32_t num);
 
 #endif

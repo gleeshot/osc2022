@@ -1,6 +1,7 @@
 #include "mini_uart.h"
 #include "shell.h"
 #include "dtb.h"
+#include "mmu_def.h"
 
 void main()
 {
@@ -14,10 +15,11 @@ void main()
     uart_puts("\n\r");
     // uart_puts("start finding cpio");
     fdt_parser((fdt_header *)(DTB_BASE), initramfs_callback);
+    uint32_t dtb_size = SWAP_ENDIANNESS(((fdt_header *)(DTB_BASE))->totalsize);
     // init timeout queue
-    init_timeout();
+    // init_timeout();
     // init buddy system
-    mm_init();
+    mm_init(DTB_BASE, dtb_size);
     // execute shell
     exe_shell();
     

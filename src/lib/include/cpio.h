@@ -5,6 +5,7 @@
 #include "string.h"
 #include "utils.h"
 #include "dtb.h"
+#include "mm.h"
 
 /* The cpio archive format collects any number of files, directories, and
  * other file	system objects (symbolic links,	device nodes, etc.) into a
@@ -37,5 +38,6 @@ extern uint32_t CPIO_BASE;
 int cpio_header_parser(cpio_new_header *header, char** file_name, unsigned long* file_size, char** data, cpio_new_header **next_header);
 void cpio_ls(cpio_new_header *header);
 void cpio_cat(cpio_new_header *header, char *input);
+void *cpio_load(cpio_new_header *header, const char *target_file_name);
 
 #endif

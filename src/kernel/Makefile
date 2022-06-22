@@ -16,6 +16,10 @@ LIB_SRC = \
 	$(LIB_SRC_DIR)/timer.c \
 	$(LIB_SRC_DIR)/list.c \
 	$(LIB_SRC_DIR)/mm.c \
+	$(LIB_SRC_DIR)/thread.c \
+	$(LIB_SRC_DIR)/syscall.c \
+	$(LIB_SRC_DIR)/mmio.c \
+	$(LIB_SRC_DIR)/mmu.c \
 
 LIB_INCLUDES = \
 	-I $(LIB_SRC_DIR)/include \
@@ -66,6 +70,8 @@ PROJ = kernel8
 OUT_ELF = ./$(PROJ).elf
 OUT_IMG = ./$(PROJ).img
 LINKER_FILE = linker.ld
+CPIO_FILE = ../initramfs/initramfs.cpio
+DTB_FILE  = ../devicetree/bcm2710-rpi-3-b-plus.dtb
 
 #CCFLAGS = -Wall -O2 -ffreestanding -nostdinc -nostdlib -nostartfiles
 CCFLAGS = -Wall -O0 -ffreestanding -nostdinc -nostdlib -nostartfiles -g
@@ -123,3 +129,6 @@ clean:
 	rm -rf *.elf
 	rm -rf *.img
 	rm -rf $(BUILD_DIR)
+
+debug: all
+	qemu-system-aarch64 -M raspi3 -kernel $(OUT_IMG) -serial null -serial stdio -initrd $(CPIO_FILE) -dtb $(DTB_FILE) -S -s

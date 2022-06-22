@@ -47,6 +47,7 @@ void initramfs_callback(fdt_prop *prop, char *node_name, char *prop_name) {
         // uart_send('b');
         uint32_t *prop_addr = (uint32_t *)(prop + 1);
         CPIO_BASE = SWAP_ENDIANNESS(*prop_addr);
+        // CPIO_BASE += KERNEL_VIRT_BASE;
         uart_puts("[initramfs] CPIO_BASE: ");
         uart_hex(CPIO_BASE);
         uart_puts("\r\n");
